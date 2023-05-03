@@ -482,3 +482,5 @@ $RECYCLE.BIN/
 # appsettings.json automatically written to by Visual Studio
 appsettings.json
 appsettings.Development.json
+src/MyIdIdentification/.vscode/launch.json
+src/MyIdIdentification/.vscode/tasks.json

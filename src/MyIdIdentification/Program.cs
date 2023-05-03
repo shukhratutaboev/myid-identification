@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using MyIdIdentification.Context;
 using MyIdIdentification.Middlewares;
 using MyIdIdentification.Options;
 using MyIdIdentification.Services;
@@ -12,7 +14,11 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IMyIdService, MyIdService>();
 builder.Services.AddHttpClient();
-builder.Services.Configure<MyIdOptions>(builder.Configuration.GetSection("MyId"));
+builder.Services.Configure<Urls>(builder.Configuration.GetSection("MyIdUrls"));
+builder.Services.AddDbContext<IdentificationContext>(options =>
+{
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+});
 
 var app = builder.Build();
 
