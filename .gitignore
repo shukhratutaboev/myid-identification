@@ -478,3 +478,7 @@ $RECYCLE.BIN/
 
 # VS Code files
 .vscode/*
+
+# appsettings.json automatically written to by Visual Studio
+appsettings.json
+appsettings.Development.json
