@@ -47,17 +47,17 @@ public class MyIdService : IMyIdService
 
         request.Headers.Authorization = new AuthenticationHeaderValue(accessToken.TokenType, accessToken.AccessToken);
 
-        var Model = await _httpClient.SendAsync(request);
+        var model = await _httpClient.SendAsync(request);
 
-        if (!Model.IsSuccessStatusCode)
+        if (!model.IsSuccessStatusCode)
         {
-            var error = await Model.Content.ReadAsStringAsync();
+            var error = await model.Content.ReadAsStringAsync();
             _logger.LogError("Error while getting user info from MyId");
             throw new Exception($"Error while getting user info from MyId: {error}");
         }
 
-        var ModelString = await Model.Content.ReadAsStringAsync();
-        var myIdSdkModel = JsonSerializer.Deserialize<MyIdSdkModel>(ModelString);
+        var modelString = await model.Content.ReadAsStringAsync();
+        var myIdSdkModel = JsonSerializer.Deserialize<MyIdSdkModel>(modelString);
         var doc = ToDocument(myIdSdkModel);
         doc.UserId = userId;
         doc.ProviderId = provider.Id;
@@ -93,38 +93,38 @@ public class MyIdService : IMyIdService
             {"client_secret", credentials.ClientSecret}
         });
 
-        var Model = await _httpClient.SendAsync(request);
+        var model = await _httpClient.SendAsync(request);
 
-        if (!Model.IsSuccessStatusCode)
+        if (!model.IsSuccessStatusCode)
         {
-            var error = await Model.Content.ReadAsStringAsync();
+            var error = await model.Content.ReadAsStringAsync();
             _logger.LogError("Error while getting access token from MyId");
             throw new Exception($"Error while getting access token from MyId: {error}");
         }
 
-        var ModelString = await Model.Content.ReadAsStringAsync();
-        var accessTokenModel = JsonSerializer.Deserialize<MyIdAccessTokenModel>(ModelString);
+        var modelString = await model.Content.ReadAsStringAsync();
+        var accessTokenModel = JsonSerializer.Deserialize<MyIdAccessTokenModel>(modelString);
         return accessTokenModel;
     }
 
-    public Passport ToDocument(MyIdSdkModel Model)
+    public Passport ToDocument(MyIdSdkModel model)
         => new Passport()
         {
-            FirstName = Model.Profile.CommonData.FirstName,
-            LastName = Model.Profile.CommonData.LastName,
-            MiddleName = Model.Profile.CommonData.MiddleName,
-            BirthDate = DateTime.ParseExact(Model.Profile.CommonData.BirthDate, "dd-MM-yyyy", CultureInfo.InvariantCulture),
-            Tin = Model.Profile.CommonData.Inn,
-            Pinfl = Model.Profile.CommonData.Pinfl,
-            PassportNumber = Model.Profile.DocData.PassData[2..],
-            PassportSerial = Model.Profile.DocData.PassData[..2],
-            PassportGivenDate = DateTime.ParseExact(Model.Profile.DocData.IssuedDate, "dd-MM-yyyy", CultureInfo.InvariantCulture),
-            PassportExpireDate = DateTime.ParseExact(Model.Profile.DocData.ExpiryDate, "dd-MM-yyyy", CultureInfo.InvariantCulture),
-            PassportGivenBy = Model.Profile.DocData.IssuedBy,
-            Address = Model.Profile.Address.PermanentAddress,
+            FirstName = model.Profile.CommonData.FirstName,
+            LastName = model.Profile.CommonData.LastName,
+            MiddleName = model.Profile.CommonData.MiddleName,
+            BirthDate = DateTime.ParseExact(model.Profile.CommonData.BirthDate, "dd-MM-yyyy", CultureInfo.InvariantCulture),
+            Tin = model.Profile.CommonData.Inn,
+            Pinfl = model.Profile.CommonData.Pinfl,
+            PassportNumber = model.Profile.DocData.PassData[2..],
+            PassportSerial = model.Profile.DocData.PassData[..2],
+            PassportGivenDate = DateTime.ParseExact(model.Profile.DocData.IssuedDate, "dd-MM-yyyy", CultureInfo.InvariantCulture),
+            PassportExpireDate = DateTime.ParseExact(model.Profile.DocData.ExpiryDate, "dd-MM-yyyy", CultureInfo.InvariantCulture),
+            PassportGivenBy = model.Profile.DocData.IssuedBy,
+            Address = model.Profile.Address.PermanentAddress,
             ProviderType = EProviderType.MyId,
             CreatedAt = DateTime.Now,
             UpdatedAt = DateTime.Now,
-            AllData = JsonDocument.Parse(JsonSerializer.Serialize(Model))
+            AllData = JsonDocument.Parse(JsonSerializer.Serialize(model))
         };
 }
