@@ -32,13 +32,13 @@ public class MyIdService : IMyIdService
     }
 
 
-    public async Task<MyIdSdkResponse> GetMyIdSdkResponseAsync(string code, long userId, Guid providerId)
+    public async Task<MyIdSdkModel> GetMyIdSdkModelAsync(string code, long userId, string method, EProviderType providerType)
     {
-        var provider = await _context.Providers.FirstOrDefaultAsync(p => p.Id == providerId && p.ProviderType == EProviderType.MyId);
+        var provider = await _context.Providers.FirstOrDefaultAsync(p => p.Method == method && p.ProviderType == providerType);
         if (provider == null || provider.Credentials == null)
         {
-            _logger.LogError($"Credentials doesn't exist for {providerId} provider.");
-            throw new Exception($"Credentials doesn't exist for {providerId} provider.");
+            _logger.LogError($"Credentials doesn't exist for given provider.");
+            throw new Exception($"Credentials doesn't exist for given provider.");
         }
 
         var accessToken = await GetMyIdSdkAccessTokenAsync(code, provider);
@@ -47,26 +47,39 @@ public class MyIdService : IMyIdService
 
         request.Headers.Authorization = new AuthenticationHeaderValue(accessToken.TokenType, accessToken.AccessToken);
 
-        var response = await _httpClient.SendAsync(request);
+        var model = await _httpClient.SendAsync(request);
 
-        if (!response.IsSuccessStatusCode)
+        if (!model.IsSuccessStatusCode)
         {
-            var error = await response.Content.ReadAsStringAsync();
+            var error = await model.Content.ReadAsStringAsync();
             _logger.LogError("Error while getting user info from MyId");
             throw new Exception($"Error while getting user info from MyId: {error}");
         }
 
-        var responseString = await response.Content.ReadAsStringAsync();
-        var myIdSdkResponse = JsonSerializer.Deserialize<MyIdSdkResponse>(responseString);
-        var doc = ToDocument(myIdSdkResponse);
+        var modelString = await model.Content.ReadAsStringAsync();
+        var myIdSdkModel = JsonSerializer.Deserialize<MyIdSdkModel>(modelString);
+        var doc = ToDocument(myIdSdkModel);
         doc.UserId = userId;
         doc.ProviderId = provider.Id;
-        await _context.Documents.AddAsync(doc);
+        await _context.Passports.AddAsync(doc);
         await _context.SaveChangesAsync();
-        return myIdSdkResponse;
+        return myIdSdkModel;
     }
 
-    private async Task<MyIdAccessTokenResponse> GetMyIdSdkAccessTokenAsync(string code, Provider provider)
+    public async Task<MyIdSdkModel> GetConfirmedUserAsync(long userId, string method, EProviderType providerType)
+    {
+        var user = await _context.Passports.FirstOrDefaultAsync(d => d.UserId == userId && d.Provider.Method == method && d.Provider.ProviderType == providerType);
+
+        if (user == null)
+        {
+            _logger.LogError($"User with id {userId} doesn't exist.");
+            return null;
+        }
+
+        return user.AllData.Deserialize<MyIdSdkModel>();
+    }
+
+    private async Task<MyIdAccessTokenModel> GetMyIdSdkAccessTokenAsync(string code, Provider provider)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, _options.GetAccessToken);
 
@@ -80,38 +93,38 @@ public class MyIdService : IMyIdService
             {"client_secret", credentials.ClientSecret}
         });
 
-        var response = await _httpClient.SendAsync(request);
+        var model = await _httpClient.SendAsync(request);
 
-        if (!response.IsSuccessStatusCode)
+        if (!model.IsSuccessStatusCode)
         {
-            var error = await response.Content.ReadAsStringAsync();
+            var error = await model.Content.ReadAsStringAsync();
             _logger.LogError("Error while getting access token from MyId");
             throw new Exception($"Error while getting access token from MyId: {error}");
         }
 
-        var responseString = await response.Content.ReadAsStringAsync();
-        var accessTokenResponse = JsonSerializer.Deserialize<MyIdAccessTokenResponse>(responseString);
-        return accessTokenResponse;
+        var modelString = await model.Content.ReadAsStringAsync();
+        var accessTokenModel = JsonSerializer.Deserialize<MyIdAccessTokenModel>(modelString);
+        return accessTokenModel;
     }
 
-    public Passport ToDocument(MyIdSdkResponse response)
+    public Passport ToDocument(MyIdSdkModel model)
         => new Passport()
         {
-            FirstName = response.Profile.CommonData.FirstName,
-            LastName = response.Profile.CommonData.LastName,
-            MiddleName = response.Profile.CommonData.MiddleName,
-            BirthDate = DateTime.ParseExact(response.Profile.CommonData.BirthDate, "dd-MM-yyyy", CultureInfo.InvariantCulture),
-            Tin = response.Profile.CommonData.Inn,
-            Pinfl = response.Profile.CommonData.Pinfl,
-            PassportNumber = response.Profile.DocData.PassData[2..],
-            PassportSerial = response.Profile.DocData.PassData[..2],
-            PassportGivenDate = DateTime.ParseExact(response.Profile.DocData.IssuedDate, "dd-MM-yyyy", CultureInfo.InvariantCulture),
-            PassportExpireDate = DateTime.ParseExact(response.Profile.DocData.ExpiryDate, "dd-MM-yyyy", CultureInfo.InvariantCulture),
-            PassportGivenBy = response.Profile.DocData.IssuedBy,
-            Address = response.Profile.Address.PermanentAddress,
+            FirstName = model.Profile.CommonData.FirstName,
+            LastName = model.Profile.CommonData.LastName,
+            MiddleName = model.Profile.CommonData.MiddleName,
+            BirthDate = DateTime.ParseExact(model.Profile.CommonData.BirthDate, "dd-MM-yyyy", CultureInfo.InvariantCulture),
+            Tin = model.Profile.CommonData.Inn,
+            Pinfl = model.Profile.CommonData.Pinfl,
+            PassportNumber = model.Profile.DocData.PassData[2..],
+            PassportSerial = model.Profile.DocData.PassData[..2],
+            PassportGivenDate = DateTime.ParseExact(model.Profile.DocData.IssuedDate, "dd-MM-yyyy", CultureInfo.InvariantCulture),
+            PassportExpireDate = DateTime.ParseExact(model.Profile.DocData.ExpiryDate, "dd-MM-yyyy", CultureInfo.InvariantCulture),
+            PassportGivenBy = model.Profile.DocData.IssuedBy,
+            Address = model.Profile.Address.PermanentAddress,
             ProviderType = EProviderType.MyId,
             CreatedAt = DateTime.Now,
             UpdatedAt = DateTime.Now,
-            AllData = JsonDocument.Parse(JsonSerializer.Serialize(response))
+            AllData = JsonDocument.Parse(JsonSerializer.Serialize(model))
         };
 }

@@ -2,25 +2,25 @@ using System.Text.Json.Serialization;
 
 namespace MyIdIdentification.Models;
 
-public class MyIdProfileResponse
+public class MyIdProfileModel
 {
     [JsonPropertyName("common_data")]
-    public MyIdCommonDataResponse CommonData { get; set; }
+    public MyIdCommonDataModel CommonData { get; set; }
 
     [JsonPropertyName("doc_data")]
-    public MyIdDocDataResponse DocData { get; set; }
+    public MyIdDocDataModel DocData { get; set; }
 
     [JsonPropertyName("contacts")]
-    public MyIdContactsResponse Contacts { get; set; }
+    public MyIdContactsModel Contacts { get; set; }
 
     [JsonPropertyName("address")]
-    public MyIdAddressResponse Address { get; set; }
+    public MyIdAddressModel Address { get; set; }
 
     [JsonPropertyName("authentication_method")]
     public string AuthenticationMethod { get; set; }
 }
 
-public class MyIdCommonDataResponse
+public class MyIdCommonDataModel
 {
     [JsonPropertyName("first_name")]
     public string FirstName { get; set; }
@@ -86,7 +86,7 @@ public class MyIdCommonDataResponse
     public string LastUpdateAddress { get; set; }
 }
 
-public class MyIdContactsResponse
+public class MyIdContactsModel
 {
     [JsonPropertyName("phone")]
     public string Phone { get; set; }
@@ -95,7 +95,7 @@ public class MyIdContactsResponse
     public string Email { get; set; }
 }
 
-public class MyIdDocDataResponse
+public class MyIdDocDataModel
 {
     [JsonPropertyName("pass_data")]
     public string PassData { get; set; }
@@ -119,7 +119,7 @@ public class MyIdDocDataResponse
     public string DocTypeId { get; set; }
 }
 
-public class MyIdAddressResponse
+public class MyIdAddressModel
 {
     [JsonPropertyName("permanent_address")]
     public string PermanentAddress { get; set; }
@@ -128,13 +128,13 @@ public class MyIdAddressResponse
     public string TemporaryAddress { get; set; }
 
     [JsonPropertyName("permanent_registration")]
-    public MyIdRegistrationAddressResponse PermanentRegistration { get; set; }
+    public MyIdRegistrationAddressModel PermanentRegistration { get; set; }
 
     [JsonPropertyName("temporary_registration")]
-    public MyIdRegistrationAddressResponse TemporaryRegistration { get; set; }
+    public MyIdRegistrationAddressModel TemporaryRegistration { get; set; }
 }
 
-public class MyIdRegistrationAddressResponse
+public class MyIdRegistrationAddressModel
 {
     [JsonPropertyName("region")]
     public string Region { get; set; }

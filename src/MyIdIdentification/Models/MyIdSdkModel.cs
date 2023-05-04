@@ -2,8 +2,8 @@ using System.Text.Json.Serialization;
 
 namespace MyIdIdentification.Models;
 
-public class MyIdSdkResponse
+public class MyIdSdkModel
 {
     [JsonPropertyName("profile")]
-    public MyIdProfileResponse Profile { get; set; }
+    public MyIdProfileModel Profile { get; set; }
 }
