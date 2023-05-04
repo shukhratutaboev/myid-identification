@@ -1,6 +1,6 @@
 namespace MyIdIdentification.Entities.Enums;
 
-public enum EIdentificationType
+public enum EProviderType
 {
     MyId = 1
 }

@@ -32,16 +32,16 @@ public class MyIdService : IMyIdService
     }
 
 
-    public async Task<MyIdSdkResponse> GetMyIdSdkResponseAsync(string code, long userId, long orgId)
+    public async Task<MyIdSdkResponse> GetMyIdSdkResponseAsync(string code, long userId, Guid providerId)
     {
-        var provider = await _context.Providers.FirstOrDefaultAsync(p => p.OrganizationId == orgId && p.IdentificationType == EIdentificationType.MyId);
+        var provider = await _context.Providers.FirstOrDefaultAsync(p => p.Id == providerId && p.ProviderType == EProviderType.MyId);
         if (provider == null || provider.Credentials == null)
         {
-            _logger.LogError($"Credentials doesn't exist for {orgId} organization.");
-            throw new Exception($"Credentials doesn't exist for {orgId} organization.");
+            _logger.LogError($"Credentials doesn't exist for {providerId} provider.");
+            throw new Exception($"Credentials doesn't exist for {providerId} provider.");
         }
 
-        var accessToken = await GetMyIdSdkAccessTokenAsync(code, orgId, provider);
+        var accessToken = await GetMyIdSdkAccessTokenAsync(code, provider);
 
         var request = new HttpRequestMessage(HttpMethod.Get, _options.GetMe);
 
@@ -66,7 +66,7 @@ public class MyIdService : IMyIdService
         return myIdSdkResponse;
     }
 
-    private async Task<MyIdAccessTokenResponse> GetMyIdSdkAccessTokenAsync(string code, long orgId, Provider provider)
+    private async Task<MyIdAccessTokenResponse> GetMyIdSdkAccessTokenAsync(string code, Provider provider)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, _options.GetAccessToken);
 
@@ -94,8 +94,8 @@ public class MyIdService : IMyIdService
         return accessTokenResponse;
     }
 
-    public Document ToDocument(MyIdSdkResponse response)
-        => new Document()
+    public Passport ToDocument(MyIdSdkResponse response)
+        => new Passport()
         {
             FirstName = response.Profile.CommonData.FirstName,
             LastName = response.Profile.CommonData.LastName,
@@ -109,7 +109,7 @@ public class MyIdService : IMyIdService
             PassportExpireDate = DateTime.ParseExact(response.Profile.DocData.ExpiryDate, "dd-MM-yyyy", CultureInfo.InvariantCulture),
             PassportGivenBy = response.Profile.DocData.IssuedBy,
             Address = response.Profile.Address.PermanentAddress,
-            IdentificationType = EIdentificationType.MyId,
+            ProviderType = EProviderType.MyId,
             CreatedAt = DateTime.Now,
             UpdatedAt = DateTime.Now,
             AllData = JsonDocument.Parse(JsonSerializer.Serialize(response))

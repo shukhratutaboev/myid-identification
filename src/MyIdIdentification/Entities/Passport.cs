@@ -5,14 +5,14 @@ using MyIdIdentification.Entities.Enums;
 
 namespace MyIdIdentification.Entities;
 
-public class Document
+public class Passport
 {
     [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public long Id { get; set; }
+    public Guid Id { get; set; }
 
     public long UserId { get; set; }
 
-    public long ProviderId { get; set; }
+    public Guid ProviderId { get; set; }
 
     [ForeignKey(nameof(ProviderId))]
     public Provider Provider { get; set; }
@@ -54,7 +54,7 @@ public class Document
 
     public DateTime UpdatedAt { get; set; }
 
-    public EIdentificationType IdentificationType { get; set; }
+    public EProviderType ProviderType { get; set; }
 
     public JsonDocument AllData { get; set; }
 }

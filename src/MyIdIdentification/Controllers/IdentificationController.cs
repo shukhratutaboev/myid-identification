@@ -19,9 +19,9 @@ public class IdentificationController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAsync(string code, long userId, long orgId)
+    public async Task<IActionResult> GetAsync(string code, long userId, Guid providerId)
     {
-        var myIdSdkResponse = await _myIdService.GetMyIdSdkResponseAsync(code, userId, orgId);
+        var myIdSdkResponse = await _myIdService.GetMyIdSdkResponseAsync(code, userId, providerId);
 
         return Ok(myIdSdkResponse);
     }

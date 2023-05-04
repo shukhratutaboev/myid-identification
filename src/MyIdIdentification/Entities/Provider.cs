@@ -8,11 +8,11 @@ namespace MyIdIdentification.Entities;
 public class Provider
 {
     [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public long Id { get; set; }
+    public Guid Id { get; set; }
 
-    public long OrganizationId { get; set; }
+    public string Method { get; set; }
 
-    public EIdentificationType IdentificationType { get; set; }
+    public EProviderType ProviderType { get; set; }
     
     public JsonDocument Credentials { get; set; }
 }
