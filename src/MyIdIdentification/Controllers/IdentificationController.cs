@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using MyIdIdentification.Entities.Enums;
 using MyIdIdentification.Services;
 
 namespace MyIdIdentification.Controllers;
@@ -19,10 +20,10 @@ public class IdentificationController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAsync(string code, long userId, Guid providerId)
+    public async Task<IActionResult> GetAsync(string code, long userId, string method)
     {
-        var myIdSdkResponse = await _myIdService.GetMyIdSdkResponseAsync(code, userId, providerId);
+        var myIdSdkModel = await _myIdService.GetMyIdSdkModelAsync(code, userId, method, EProviderType.MyId);
 
-        return Ok(myIdSdkResponse);
+        return Ok(myIdSdkModel);
     }
 }
